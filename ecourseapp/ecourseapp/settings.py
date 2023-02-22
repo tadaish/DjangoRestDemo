@@ -35,7 +35,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'courses'
+    'courses',
+    'ckeditor',
+    'ckeditor_uploader',
+    'rest_framework',
+    'drf_yasg'
 ]
 
 MIDDLEWARE = [
@@ -52,6 +56,8 @@ AUTH_USER_MODEL = 'courses.User'
 ROOT_URLCONF = 'ecourseapp.urls'
 
 MEDIA_ROOT = '%s/courses/static' % BASE_DIR
+
+CKEDITOR_UPLOAD_PATH = "ckeditors/courses/"
 
 TEMPLATES = [
     {
