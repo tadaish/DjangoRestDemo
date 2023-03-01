@@ -1,2 +1,5 @@
 Django==4.1.7
+django_ckeditor==6.5.1
+djangorestframework==3.14.0
+drf_yasg==1.21.5
 PyMySQL==1.0.2
