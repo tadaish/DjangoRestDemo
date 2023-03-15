@@ -15,7 +15,7 @@ class BaseModel(models.Model):
 
 
 class User(AbstractUser):
-    pass
+    avatar = models.ImageField(upload_to='users/%Y/%m', null=True)
 
 
 class Category(models.Model):
