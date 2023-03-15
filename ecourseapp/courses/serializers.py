@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Category, Course, Tag, Lesson, User
+from .models import Category, Course, Lesson, Tag, User
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -14,7 +14,7 @@ class CourseSerializer(serializers.ModelSerializer):
     def get_image(self, course):
         if course.image:
             request = self.context.get('request')
-            return request.build_absolute_uri('static/%s' & course.image.name) if request else ''
+            return request.build_absolute_uri('static/%s' % course.image.name) if request else ''
 
     class Meta:
         model = Course
@@ -63,6 +63,3 @@ class UserSerializer(serializers.ModelSerializer):
             'avatar': {'write_only': True},
             'password': {'write_only': True}
         }
-
-
-
