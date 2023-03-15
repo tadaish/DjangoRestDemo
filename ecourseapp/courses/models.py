@@ -51,3 +51,29 @@ class Tag(BaseModel):
 
     def __str__(self):
         return self.name
+
+
+class Comment(BaseModel):
+    content = models.CharField(max_length=225)
+    lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.name
+
+
+class ActionBase(BaseModel):
+    lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    class Meta:
+        abstract = True
+        unique_together = ('lesson', 'user')
+
+
+class Like(ActionBase):
+    liked = models.BooleanField(default=True)
+
+
+class Rating(ActionBase):
+    rate = models.SmallIntegerField(default=0)

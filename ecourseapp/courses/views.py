@@ -1,9 +1,12 @@
-from rest_framework import viewsets, generics, permissions, parsers
+from rest_framework import viewsets, generics, permissions, parsers, status
 from rest_framework.decorators import action
 from rest_framework.views import Response
-from .models import Category, Course, Lesson, User, Tag
-from .serializers import CategorySerializer, CourseSerializer, LessonSerializer, LessonDetailsSerializer, UserSerializer
+from .models import Category, Course, Lesson, User, Tag, Comment, Like, Rating
+from .serializers import (CategorySerializer, CourseSerializer,
+                          LessonSerializer, CommentSerializer,
+                          LessonDetailsSerializer, UserSerializer)
 from .paginators import CoursePaginator
+from .perms import CommentOwner
 
 
 class CategoryViewSet(viewsets.ViewSet, generics.ListAPIView):
@@ -46,7 +49,7 @@ class LessonViewSet(viewsets.ViewSet, generics.RetrieveAPIView):
     serializer_class = LessonDetailsSerializer
 
     def get_permissions(self):
-        if self.action in ['assign_tags']:
+        if self.action in ['assign_tags', 'comments', 'like', 'rating']:
             return [permissions.IsAuthenticated()]
         return [permissions.AllowAny()]
 
@@ -58,8 +61,31 @@ class LessonViewSet(viewsets.ViewSet, generics.RetrieveAPIView):
             tag, _ = Tag.objects.get_or_create(name=t)
             lesson.tags.add(tag)
         lesson.save()
-
         return Response(LessonDetailsSerializer(lesson, context={'request': request}).data)
+
+    @action(methods=['post'], detail=True, url_path='comments')
+    def comments(self, request, pk):
+        c = Comment(content=request.data['content'], lesson=self.get_object(), user=request.user)
+        c.save()
+
+        return Response(CommentSerializer(c).data, status=status.HTTP_200_OK)
+
+    @action(methods=['post'], detail=True, url_path='like')
+    def like(self, request, pk):
+        l, created = Like.objects.get_or_create(lesson=self.get_object(), user=request.user)
+        if not created:
+            l.liked = not l.liked
+        l.save()
+
+        return Response(status=status.HTTP_200_OK)
+
+    @action(methods=['post'], detail=True, url_path='rating')
+    def rating(self, request, pk):
+        r, _ = Rating.objects.get_or_create(lesson=self.get_object(), user=request.user)
+        r.rate = request.data['rate']
+        r.save()
+
+        return Response(status=status.HTTP_200_OK)
 
 
 class UserViewSet(viewsets.ViewSet, generics.CreateAPIView):
@@ -82,3 +108,9 @@ class UserViewSet(viewsets.ViewSet, generics.CreateAPIView):
             u.save()
 
         return Response(UserSerializer(u, context={'request': request}).data)
+
+
+class CommentViewSet(viewsets.ViewSet, generics.DestroyAPIView, generics.UpdateAPIView):
+    queryset = Comment.objects.filter(active=True)
+    serializer_class = CommentSerializer
+    permission_classes = [CommentOwner, ]
